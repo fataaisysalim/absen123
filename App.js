@@ -1,9 +1,10 @@
-import React, { useEffect } from 'react';
+import React, { useState,useEffect } from 'react';
 import { Alert,StatusBar } from 'react-native';
 import { WebView } from 'react-native-webview';
 import messaging from '@react-native-firebase/messaging';
 
 function App() {
+	const [webUrl, setWebUrl] = useState('https://mobile.absen123.com/auth');
 	async function requestUserPermission() {
 		const authStatus = await messaging().requestPermission();
 		const enabled =
@@ -17,6 +18,7 @@ function App() {
 
 	async function getToken(){
 		const fcmToken = await messaging().getToken();
+		setWebUrl('https://mobile.absen123.com/auth?fcm_token='+fcmToken);
 		console.log(fcmToken);
 	}
 
@@ -29,14 +31,13 @@ function App() {
 		// });
 		
 		messaging().setBackgroundMessageHandler(async remoteMessage => {
-			console.log('Background Message:', remoteMessage.notification?.body); 
+			// console.log('Background Message:', remoteMessage.notification?.body); 
 		});
 	  
 		messaging().onNotificationOpenedApp(remoteMessage => {
-			console.log(
-			  'Notification caused app to open from background state:',
-			  remoteMessage.notification,
-			);
+			if(remoteMessage.notification?.title.toLowerCase().includes("tugas")){
+				setWebUrl('https://mobile.absen123.com/task');
+			}
 		});
 
 		messaging()
@@ -56,9 +57,7 @@ function App() {
 	return (
 		<>
 			<StatusBar translucent backgroundColor="transparent" />
-			<WebView
-			source={{ uri: 'https://mobile.absen123.com' }}
-			/>
+			<WebView source={{ uri: webUrl }}/>
 		</>
 	);
 }
